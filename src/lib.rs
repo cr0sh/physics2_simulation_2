@@ -42,20 +42,19 @@ impl MarbleBoard {
 
     pub fn is_connected(&self) -> bool {
         // Use BFS algorithm to check.
-        let mut q = VecDeque::<(usize, usize)>::new();
+        let mut q = VecDeque::<(usize, usize)>::with_capacity(4000);
         let mut visited = [[false; BOARD_WIDTH]; BOARD_HEIGHT];
         for i in 0..BOARD_WIDTH {
+            if self.marbles[0][i] == Marble::Glass {
+                continue;
+            }
             visited[0][i] = true;
             q.push_back((0, i));
         }
 
         while !q.is_empty() {
-            let pos = q.pop_front().unwrap();
-            if self.marbles[pos.0][pos.1] == Marble::Glass {
-                continue;
-            }
-
             const DELTAS: [(isize, isize); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+            let pos = q.pop_front().unwrap();
 
             for delta in &DELTAS {
                 let newpos = (pos.0 as isize + delta.0, pos.1 as isize + delta.1);
@@ -68,6 +67,7 @@ impl MarbleBoard {
                     && 0 <= newpos.1
                     && newpos.1 < BOARD_WIDTH as isize)
                     || visited[newpos.0 as usize][newpos.1 as usize]
+                    || self.marbles[newpos.0 as usize][newpos.1 as usize] == Marble::Glass
                 {
                     continue;
                 }
@@ -94,6 +94,10 @@ mod tests {
         }
         assert!(mb.is_connected());
 
+        mb.marbles[0][2] = Marble::Glass;
+        assert!(!mb.is_connected());
+
+        mb.marbles[0][2] = Marble::Steel;
         mb.marbles[2][2] = Marble::Glass;
         assert!(!mb.is_connected());
 
